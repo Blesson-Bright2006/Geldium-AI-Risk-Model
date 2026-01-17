@@ -1,0 +1,6 @@
+import kagglehub
+
+# This pulls the data from the cloud
+path = kagglehub.dataset_download("laotse/credit-risk-dataset")
+
+print("✅ Success! Your data is at:", path)
