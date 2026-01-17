@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gldium AI Pro</title>
+    <style>
+        :root { 
+            --primary: #00ff88; 
+            --bg: #0f172a; 
+            --card: rgba(15, 23, 42, 0.85); 
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            
+            /* 🖼️ FIXED BACKGROUND LOGIC BRUHH */
+            background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
+                        url("{{ url_for('static', filename='banking image.avif') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .dashboard { 
+            width: 1000px; 
+            max-width: 95%; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 25px; 
+            align-content: start;
+        }
+
+        .header { grid-column: 1 / -1; text-align: center; padding: 20px 0; }
+        .header h1 { 
+            color: var(--primary); 
+            font-size: 3rem; 
+            margin: 0;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5); 
+        }
+
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            padding: 30px; 
+            border-radius: 24px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        h3 { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: var(--primary); margin-top: 0; }
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: #94a3b8; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; color: white; box-sizing: border-box; }
+
+        button { 
+            width: 100%; padding: 16px; background: var(--primary); border: none; border-radius: 12px; 
+            font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; 
+            margin-top: 25px; color: #0f172a; text-transform: uppercase;
+        }
+
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,255,136,0.4); }
+
+        .result-zone { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .status-pill { padding: 15px 40px; border-radius: 100px; font-size: 2rem; font-weight: 800; margin: 20px 0; text-transform: uppercase; }
+        .safe { color: #00ff88; border: 2px solid #00ff88; background: rgba(0,255,136,0.1); }
+        .risky { color: #ff4444; border: 2px solid #ff4444; background: rgba(255,68,68,0.1); }
+
+        .feature-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .feature-item { background: rgba(30, 41, 59, 0.5); padding: 20px; border-radius: 15px; text-align: center; border-bottom: 3px solid var(--primary); }
+        .feature-item div { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>💰 Gldium AI Pro</h1>
+            <p>Advanced Financial Intelligence Dashboard</p>
+        </div>
+
+        <div class="card">
+            <h3>System Parameters</h3>
+            <label>Annual Income ($)</label>
+            <input type="number" id="income" placeholder="e.g. 60000">
+            <label>Requested Loan ($)</label>
+            <input type="number" id="loan" placeholder="e.g. 5000">
+            <label>Applicant Age</label>
+            <input type="number" id="age" placeholder="e.g. 28">
+            <label>Credit History (Years)</label>
+            <input type="number" id="history" placeholder="e.g. 8">
+            <button onclick="checkRisk()">Check Credit Risk</button>
+        </div>
+
+        <div class="card result-zone">
+            <h3>AI Prediction</h3>
+            <div id="statusLabel" class="status-pill" style="border: 2px dashed #334155; color: #334155;">Ready</div>
+            <p id="messageLabel" style="color: #94a3b8;">Waiting for data input...</p>
+        </div>
+
+        <div class="card feature-grid">
+            <div class="feature-item"><small>Income-to-Loan</small><div id="lti_val">0.00</div></div>
+            <div class="feature-item"><small>Risk Factor Score</small><div id="ahf_val">0.00</div></div>
+            <div class="feature-item"><small>AI Confidence</small><div>83.82%</div></div>
+        </div>
+    </div>
+
+    <script>
+        async function checkRisk() {
+            const income = parseFloat(document.getElementById('income').value);
+            const loan = parseFloat(document.getElementById('loan').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const history = parseFloat(document.getElementById('history').value);
+
+            if (!income || !loan || !age || !history) {
+                alert("Fill all fields, brightey!");
+                return;
+            }
+
+            document.getElementById('lti_val').innerText = (loan / income).toFixed(2);
+            document.getElementById('ahf_val').innerText = (age * history).toFixed(2);
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    person_income: income,
+                    loan_amnt: loan,
+                    person_age: age,
+                    cb_person_cred_hist_length: history
+                })
+            });
+            const res = await response.json();
+            
+            const label = document.getElementById('statusLabel');
+            label.innerText = res.status.toUpperCase();
+            label.className = 'status-pill ' + res.status.toLowerCase();
+            label.style.border = "2px solid";
+            
+            document.getElementById('messageLabel').innerText = res.message.replace(', vro!', '.');
+        }
+    </script>
+</body>
+</html>
